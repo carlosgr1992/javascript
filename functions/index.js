@@ -88,3 +88,32 @@ exports.deleteItem = functions.https.onRequest(async (request, response) => {
 });
 
 
+/* Una función trigger de tipo HTTP request que muestre todos los elementos
+   de la colección en formato JSON en la pantalla del navegador. */
+
+   // URL: https://us-central1-kyty-carlosgr.cloudfunctions.net/listItems
+
+   exports.listItems = functions.https.onRequest(async (request, response) => {
+    try {
+      // Referencia a la colección de la que queremos obtener los documentos
+      const usuariosRef = admin.firestore().collection('usuarios');
+      const snapshot = await usuariosRef.get();
+  
+      // Crear un array para almacenar los datos de los usuarios
+      const usuarios = [];
+      snapshot.forEach(doc => {
+        usuarios.push({ id: doc.id, ...doc.data() });
+      });
+  
+      // Establecer el tipo de contenido de la respuesta a JSON
+      response.set('Content-Type', 'application/json');
+  
+      // Enviar la respuesta con los usuarios en formato JSON
+      response.status(200).send(JSON.stringify(usuarios));
+    } catch (error) {
+      console.error('Error obteniendo los documentos: ', error);
+      response.status(500).send('Error interno del servidor');
+    }
+  });
+
+  
