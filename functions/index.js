@@ -116,4 +116,24 @@ exports.deleteItem = functions.https.onRequest(async (request, response) => {
     }
   });
 
+  /*Una función trigger que detecte cuando se inserto el elemento de la 
+  pregunta 1, y agregue un nuevo campo de tipo TimeStamp que muestre 
+  el instante que se inserto el elemento.*/
+
+  const { onWrite } = require("firebase-functions/v2/firestore");
+
+exports.addTimestamp = functions.firestore
+  .document('usuarios/{userId}')
+  .onCreate((snapshot, context) => {
+    // Obtener el ID del documento recién creado
+    const docId = context.params.userId;
+    console.log(`Nuevo usuario con ID: ${docId} creado`);
+
+    // Agregar campo timestamp al documento
+    return snapshot.ref.set({
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+
+
   
