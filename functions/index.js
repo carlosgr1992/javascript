@@ -136,4 +136,30 @@ exports.addTimestamp = functions.firestore
   });
 
 
-  
+  /*Una función trigger que detecte cuando se borro un elemento en la 
+  colección (de la pregunta 2) y que lo copie y almacene en otra 
+  colección que se llame “Archivo”. Y que ademas incluya otro campo 
+  nuevo de tipo TimeStamp que muestre la hora de eliminación del componente.*/
+
+
+  exports.archiveDeletedUser = functions.firestore
+  .document('usuarios/{userId}')
+  .onDelete(async (snapshot, context) => {
+    // Obtener los datos del documento eliminado
+    const deletedUserData = snapshot.data();
+    const docId = context.params.userId;
+
+    // Crear un objeto para almacenar en la colección 'Archivo'
+    const archivedData = {
+      ...deletedUserData,
+      deletedAt: admin.firestore.FieldValue.serverTimestamp() // Campo timestamp de eliminación
+    };
+
+    // Añadir el documento eliminado a la colección 'Archivo'
+    try {
+      await admin.firestore().collection('Archivo').doc(docId).set(archivedData);
+      console.log(`El elemento con ID ${docId} ha sido archivado correctamente`);
+    } catch (error) {
+      console.error(`Error al archivar el elemento con ID ${docId}: `, error);
+    }
+  });
