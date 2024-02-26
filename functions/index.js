@@ -19,3 +19,36 @@ const logger = require("firebase-functions/logger");
  });
 
 
+ /*Una funcion trigger que mediante una request de Http, se puede 
+ insertar en la base de datos un elemento con distintos 
+ atributos. La respuesta tiene que poner “Elemento con 
+ ID XXXXXXXXXX fue insertado correctamente”. (1,5 puntos)*/
+
+ // URL: https://us-central1-kyty-carlosgr.cloudfunctions.net/insertItem
+
+ const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp();
+
+exports.insertItem = functions.https.onRequest(async (request, response) => {
+  // Verificar que la solicitud es POST
+  if (request.method !== 'POST') {
+    return response.status(405).send('Método no permitido');
+  }
+
+  try {
+    // Obtener los datos enviados en la solicitud
+    const data = request.body;
+
+    // Insertar el documento en Firestore y obtener el ID del documento
+    const docRef = await admin.firestore().collection('usuarios').add(data);
+    const docId = docRef.id;
+
+    // Enviar la respuesta con el ID del documento insertado
+    response.send(`Elemento con ID ${docId} fue insertado correctamente`);
+  } catch (error) {
+    console.error('Error insertando el documento: ', error);
+    response.status(500).send('Error interno del servidor');
+  }
+});
+
