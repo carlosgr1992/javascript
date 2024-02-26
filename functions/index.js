@@ -7,12 +7,14 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp();
+
 const {onRequest} = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
-
+// Hola mundo inicial
  exports.helloWorld = onRequest((request, response) => {
    logger.info("Hello logs!", {structuredData: true});
    response.send("Hello from Firebase!");
@@ -25,10 +27,6 @@ const logger = require("firebase-functions/logger");
  ID XXXXXXXXXX fue insertado correctamente”. (1,5 puntos)*/
 
  // URL: https://us-central1-kyty-carlosgr.cloudfunctions.net/insertItem
-
- const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-admin.initializeApp();
 
 exports.insertItem = functions.https.onRequest(async (request, response) => {
   // Verificar que la solicitud es POST
@@ -51,4 +49,42 @@ exports.insertItem = functions.https.onRequest(async (request, response) => {
     response.status(500).send('Error interno del servidor');
   }
 });
+
+
+/*Una función trigger de tipo Http request que elimine un componente de 
+alguna colección de elementos. La respuesta deberá poner que “El elemento 
+con ID XXXXXXX de elimino correctamente”*/
+
+// URL: https://us-central1-kyty-carlosgr.cloudfunctions.net/deleteItem?id=Myb1gNypoHYgRY0aH5JV
+
+exports.deleteItem = functions.https.onRequest(async (request, response) => {
+  // Verificar que la solicitud es DELETE o POST, según prefieras
+  if (request.method !== 'DELETE') {
+    return response.status(405).send('Método no permitido');
+  }
+
+  try {
+    // El ID del documento a eliminar podría pasarse como un parámetro en la URL
+    const docId = request.query.id; 
+
+    // Verifica que se haya proporcionado un ID
+    if (!docId) {
+      return response.status(400).send('No se proporcionó el ID del documento a eliminar');
+    }
+
+    // Eliminar el documento en Firestore
+    await admin.firestore().collection('usuarios').doc(docId).delete();
+
+    // Enviar la respuesta con el ID del documento eliminado
+    response.send(`El elemento con ID ${docId} se eliminó correctamente`);
+  } catch (error) {
+    console.error('Error eliminando el documento: ', error);
+    // Si el documento no existe:
+    if (error.code === 'not-found') {
+      return response.status(404).send(`El elemento con ID ${request.query.id} no existe`);
+    }
+    response.status(500).send('Error interno del servidor');
+  }
+});
+
 
